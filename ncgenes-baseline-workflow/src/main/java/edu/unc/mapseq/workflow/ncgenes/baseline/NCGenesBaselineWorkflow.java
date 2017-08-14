@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import edu.unc.mapseq.module.sequencing.bwa.BWAMEMCLI;
 import org.apache.commons.lang.StringUtils;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.Graph;
@@ -28,8 +29,6 @@ import edu.unc.mapseq.dao.model.Sample;
 import edu.unc.mapseq.dao.model.WorkflowRun;
 import edu.unc.mapseq.dao.model.WorkflowRunAttempt;
 import edu.unc.mapseq.module.sequencing.WriteVCFHeaderCLI;
-import edu.unc.mapseq.module.sequencing.bwa.BWAAlignCLI;
-import edu.unc.mapseq.module.sequencing.bwa.BWASAMPairedEndCLI;
 import edu.unc.mapseq.module.sequencing.fastqc.FastQCCLI;
 import edu.unc.mapseq.module.sequencing.fastqc.IgnoreLevelType;
 import edu.unc.mapseq.module.sequencing.filter.FilterVariantCLI;
@@ -185,18 +184,6 @@ public class NCGenesBaselineWorkflow extends AbstractSequencingWorkflow {
                     graph.addVertex(fastQCR1Job);
 
                     // new job
-                    builder = SequencingWorkflowJobFactory.createJob(++count, BWAAlignCLI.class, attempt.getId(), sample.getId())
-                            .siteName(siteName).numberOfProcessors(4);
-                    File saiR1OutFile = new File(outputDirectory, r1FastqRootName + ".sai");
-                    builder.addArgument(BWAAlignCLI.THREADS, "4").addArgument(BWAAlignCLI.FASTQ, r1FastqFile.getAbsolutePath())
-                            .addArgument(BWAAlignCLI.FASTADB, referenceSequence)
-                            .addArgument(BWAAlignCLI.OUTFILE, saiR1OutFile.getAbsolutePath());
-                    CondorJob bwaAlignR1Job = builder.build();
-                    logger.info(bwaAlignR1Job.toString());
-                    graph.addVertex(bwaAlignR1Job);
-                    graph.addEdge(fastQCR1Job, bwaAlignR1Job);
-
-                    // new job
                     builder = SequencingWorkflowJobFactory.createJob(++count, FastQCCLI.class, attempt.getId(), sample.getId())
                             .siteName(siteName);
                     File fastqcR2Output = new File(outputDirectory, r2FastqRootName + ".fastqc.zip");
@@ -208,38 +195,26 @@ public class NCGenesBaselineWorkflow extends AbstractSequencingWorkflow {
                     graph.addVertex(fastQCR2Job);
 
                     // new job
-                    builder = SequencingWorkflowJobFactory.createJob(++count, BWAAlignCLI.class, attempt.getId(), sample.getId())
+                    builder = SequencingWorkflowJobFactory.createJob(++count, BWAMEMCLI.class, attempt.getId(), sample.getId())
                             .siteName(siteName).numberOfProcessors(4);
-                    File saiR2OutFile = new File(outputDirectory, r2FastqRootName + ".sai");
-                    builder.addArgument(BWAAlignCLI.THREADS, "4").addArgument(BWAAlignCLI.FASTQ, r2FastqFile.getAbsolutePath())
-                            .addArgument(BWAAlignCLI.FASTADB, referenceSequence)
-                            .addArgument(BWAAlignCLI.OUTFILE, saiR2OutFile.getAbsolutePath());
-                    CondorJob bwaAlignR2Job = builder.build();
-                    logger.info(bwaAlignR2Job.toString());
-                    graph.addVertex(bwaAlignR2Job);
-                    graph.addEdge(fastQCR2Job, bwaAlignR2Job);
-
-                    // new job
-                    builder = SequencingWorkflowJobFactory.createJob(++count, BWASAMPairedEndCLI.class, attempt.getId(), sample.getId())
-                            .siteName(siteName);
-                    File bwaSAMPairedEndOutFile = new File(outputDirectory, rootFileName + ".sam");
-                    builder.addArgument(BWASAMPairedEndCLI.FASTADB, referenceSequence)
-                            .addArgument(BWASAMPairedEndCLI.FASTQ1, r1FastqFile.getAbsolutePath())
-                            .addArgument(BWASAMPairedEndCLI.FASTQ2, r2FastqFile.getAbsolutePath())
-                            .addArgument(BWASAMPairedEndCLI.SAI1, saiR1OutFile.getAbsolutePath())
-                            .addArgument(BWASAMPairedEndCLI.SAI2, saiR2OutFile.getAbsolutePath())
-                            .addArgument(BWASAMPairedEndCLI.OUTFILE, bwaSAMPairedEndOutFile.getAbsolutePath());
-                    CondorJob bwaSAMPairedEndJob = builder.build();
-                    logger.info(bwaSAMPairedEndJob.toString());
-                    graph.addVertex(bwaSAMPairedEndJob);
-                    graph.addEdge(bwaAlignR1Job, bwaSAMPairedEndJob);
-                    graph.addEdge(bwaAlignR2Job, bwaSAMPairedEndJob);
+                    File bwaMemOutFile = new File(outputDirectory, String.format("%s.mem.sam", rootFileName));
+                    builder.addArgument(BWAMEMCLI.THREADS, "4").addArgument(BWAMEMCLI.VERBOSITY, "1")
+                            .addArgument(BWAMEMCLI.FASTADB, referenceSequence)
+                            .addArgument(BWAMEMCLI.FASTQ1, r1FastqFile.getAbsolutePath())
+                            .addArgument(BWAMEMCLI.FASTQ2, r2FastqFile.getAbsolutePath())
+                            .addArgument(BWAMEMCLI.MARKSHORTERSPLITHITS)
+                            .addArgument(BWAMEMCLI.OUTFILE, bwaMemOutFile.getAbsolutePath());
+                    CondorJob bwaMemJob = builder.build();
+                    logger.info(bwaMemJob.toString());
+                    graph.addVertex(bwaMemJob);
+                    graph.addEdge(fastQCR1Job, bwaMemJob);
+                    graph.addEdge(fastQCR2Job, bwaMemJob);
 
                     // new job
                     builder = SequencingWorkflowJobFactory
                             .createJob(++count, PicardAddOrReplaceReadGroupsCLI.class, attempt.getId(), sample.getId()).siteName(siteName);
-                    File fixRGOutput = new File(outputDirectory, bwaSAMPairedEndOutFile.getName().replace(".sam", ".fixed-rg.bam"));
-                    builder.addArgument(PicardAddOrReplaceReadGroupsCLI.INPUT, bwaSAMPairedEndOutFile.getAbsolutePath())
+                    File fixRGOutput = new File(outputDirectory, bwaMemOutFile.getName().replace(".sam", ".fixed-rg.bam"));
+                    builder.addArgument(PicardAddOrReplaceReadGroupsCLI.INPUT, bwaMemOutFile.getAbsolutePath())
                             .addArgument(PicardAddOrReplaceReadGroupsCLI.OUTPUT, fixRGOutput.getAbsolutePath())
                             .addArgument(PicardAddOrReplaceReadGroupsCLI.SORTORDER, PicardSortOrderType.COORDINATE.toString().toLowerCase())
                             .addArgument(PicardAddOrReplaceReadGroupsCLI.READGROUPID,
@@ -252,7 +227,7 @@ public class NCGenesBaselineWorkflow extends AbstractSequencingWorkflow {
                     CondorJob picardAddOrReplaceReadGroupsJob = builder.build();
                     logger.info(picardAddOrReplaceReadGroupsJob.toString());
                     graph.addVertex(picardAddOrReplaceReadGroupsJob);
-                    graph.addEdge(bwaSAMPairedEndJob, picardAddOrReplaceReadGroupsJob);
+                    graph.addEdge(bwaMemJob, picardAddOrReplaceReadGroupsJob);
 
                     // new job
                     builder = SequencingWorkflowJobFactory.createJob(++count, SAMToolsIndexCLI.class, attempt.getId(), sample.getId())

@@ -174,8 +174,8 @@ public class RegisterToIRODSRunnable implements Runnable {
                 }
                 files2RegisterToIRODS.add(new IRODSBean(file, attributeListWithJob));
 
-                File bwaSAMPairedEndOutFile = new File(outputDirectory, String.format("%s.sam", rootFileName));
-                File fixRGOutput = new File(outputDirectory, bwaSAMPairedEndOutFile.getName().replace(".sam", ".fixed-rg.bam"));
+                File bwaMemOutputFile = new File(outputDirectory, String.format("%s.mem.sam", rootFileName));
+                File fixRGOutput = new File(outputDirectory, bwaMemOutputFile.getName().replace(".sam", ".fixed-rg.bam"));
                 File picardMarkDuplicatesOutput = new File(outputDirectory, fixRGOutput.getName().replace(".bam", ".deduped.bam"));
                 File indelRealignerOut = new File(outputDirectory, picardMarkDuplicatesOutput.getName().replace(".bam", ".realign.bam"));
                 File picardFixMateOutput = new File(outputDirectory, indelRealignerOut.getName().replace(".bam", ".fixmate.bam"));

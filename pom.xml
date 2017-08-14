@@ -5,13 +5,13 @@
     <artifactId>pipeline</artifactId>
     <version>0.6.77</version>
   </parent>
-  <name>MaPSeq :: Pipelines :: NCGenes :: Baseline</name>
+  <name>MaPSeq :: Pipelines :: NCGenes :: Baseline-Mem</name>
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.unc.mapseq.pipelines</groupId>
   <artifactId>ncgenes-baseline</artifactId>
   <version>0.6.45-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <url>https://jdr0887.github.io/MaPSeq-Pipeline-NCGenes-Baseline</url>
+  <url>https://jdr0887.github.io/MaPSeq-Pipeline-NCGenes-Baseline-Mem</url>
   <properties>
     <maven.site.plugin.skip>false</maven.site.plugin.skip>    
   </properties>    
@@ -21,7 +21,7 @@
   </organization>            
   <issueManagement>
     <system>GitHub Issues</system>
-    <url>https://github.com/jdr0887/MaPSeq-Pipeline-NCGenes-Baseline/issues</url>
+    <url>https://github.com/jdr0887/MaPSeq-Pipeline-NCGenes-Baseline-Mem/issues</url>
   </issueManagement>
   <licenses>    
     <license>
@@ -31,9 +31,9 @@
     </license>
   </licenses>
   <scm>
-    <url>https://github.com/jdr0887/MaPSeq-Pipeline-NCGenes-Baseline</url>
-    <developerConnection>scm:git:git@github.com:jdr0887/MaPSeq-Pipeline-NCGenes-Baseline.git</developerConnection>
-    <connection>scm:git:git@github.com:jdr0887/MaPSeq-Pipeline-NCGenes-Baseline.git</connection>
+    <url>https://github.com/jdr0887/MaPSeq-Pipeline-NCGenes-Baseline-Mem</url>
+    <developerConnection>scm:git:git@github.com:jdr0887/MaPSeq-Pipeline-NCGenes-Baseline-Mem.git</developerConnection>
+    <connection>scm:git:git@github.com:jdr0887/MaPSeq-Pipeline-NCGenes-Baseline-Mem.git</connection>
     <tag>HEAD</tag>
   </scm>
   <dependencyManagement>
