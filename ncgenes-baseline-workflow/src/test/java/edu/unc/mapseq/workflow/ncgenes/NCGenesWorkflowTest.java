@@ -68,18 +68,16 @@ public class NCGenesWorkflowTest {
         graph.addVertex(fastQCR1Job);
 
         // new job
-        CondorJob bwaAlignR1Job = new CondorJobBuilder().name(String.format("%s_%d", BWAAlignCLI.class.getSimpleName(), ++count)).build();
-        graph.addVertex(bwaAlignR1Job);
-        graph.addEdge(fastQCR1Job, bwaAlignR1Job);
-
-        // new job
         CondorJob fastQCR2Job = new CondorJobBuilder().name(String.format("%s_%d", FastQCCLI.class.getSimpleName(), ++count)).build();
         graph.addVertex(fastQCR2Job);
 
         // new job
+        CondorJob bwaAlignR1Job = new CondorJobBuilder().name(String.format("%s_%d", BWAAlignCLI.class.getSimpleName(), ++count)).build();
+        graph.addVertex(bwaAlignR1Job);
+
+        // new job
         CondorJob bwaAlignR2Job = new CondorJobBuilder().name(String.format("%s_%d", BWAAlignCLI.class.getSimpleName(), ++count)).build();
         graph.addVertex(bwaAlignR2Job);
-        graph.addEdge(fastQCR2Job, bwaAlignR2Job);
 
         // new job
         CondorJob bwaSAMPairedEndJob = new CondorJobBuilder()
@@ -344,16 +342,6 @@ public class NCGenesWorkflowTest {
         graph.addVertex(fastQCR1Job);
 
         // new job
-        builder = SequencingWorkflowJobFactory.createJob(++count, BWAAlignCLI.class, null).siteName(siteName).numberOfProcessors(4);
-        File saiR1OutFile = new File(workflowDirectory, r1FastqRootName + ".sai");
-        builder.addArgument(BWAAlignCLI.VALIDATE, Boolean.FALSE).addArgument(BWAAlignCLI.DRYRUN).addArgument(BWAAlignCLI.THREADS, "4")
-                .addArgument(BWAAlignCLI.FASTQ, r1FastqFile.getAbsolutePath()).addArgument(BWAAlignCLI.FASTADB, referenceSequence)
-                .addArgument(BWAAlignCLI.OUTFILE, saiR1OutFile.getAbsolutePath());
-        CondorJob bwaAlignR1Job = builder.build();
-        graph.addVertex(bwaAlignR1Job);
-        graph.addEdge(fastQCR1Job, bwaAlignR1Job);
-
-        // new job
         builder = SequencingWorkflowJobFactory.createJob(++count, FastQCCLI.class, null).siteName(siteName);
         File fastqcR2Output = new File(workflowDirectory, r2FastqRootName + ".fastqc.zip");
         builder.addArgument(FastQCCLI.VALIDATE, Boolean.FALSE).addArgument(FastQCCLI.DRYRUN)
@@ -364,6 +352,15 @@ public class NCGenesWorkflowTest {
 
         // new job
         builder = SequencingWorkflowJobFactory.createJob(++count, BWAAlignCLI.class, null).siteName(siteName).numberOfProcessors(4);
+        File saiR1OutFile = new File(workflowDirectory, r1FastqRootName + ".sai");
+        builder.addArgument(BWAAlignCLI.VALIDATE, Boolean.FALSE).addArgument(BWAAlignCLI.DRYRUN).addArgument(BWAAlignCLI.THREADS, "4")
+                .addArgument(BWAAlignCLI.FASTQ, r1FastqFile.getAbsolutePath()).addArgument(BWAAlignCLI.FASTADB, referenceSequence)
+                .addArgument(BWAAlignCLI.OUTFILE, saiR1OutFile.getAbsolutePath());
+        CondorJob bwaAlignR1Job = builder.build();
+        graph.addVertex(bwaAlignR1Job);
+
+        // new job
+        builder = SequencingWorkflowJobFactory.createJob(++count, BWAAlignCLI.class, null).siteName(siteName).numberOfProcessors(4);
         File saiR2OutFile = new File(workflowDirectory, r2FastqRootName + ".sai");
         builder.addArgument(BWAAlignCLI.VALIDATE, Boolean.FALSE).addArgument(BWAAlignCLI.DRYRUN).addArgument(BWAAlignCLI.THREADS, "4")
                 .addArgument(BWAAlignCLI.FASTQ, r2FastqFile.getAbsolutePath()).addArgument(BWAAlignCLI.FASTADB, referenceSequence)
@@ -371,7 +368,6 @@ public class NCGenesWorkflowTest {
 
         CondorJob bwaAlignR2Job = builder.build();
         graph.addVertex(bwaAlignR2Job);
-        graph.addEdge(fastQCR2Job, bwaAlignR2Job);
 
         // new job
         builder = SequencingWorkflowJobFactory.createJob(++count, BWASAMPairedEndCLI.class, null).siteName(siteName);
